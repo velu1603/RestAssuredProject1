@@ -32,7 +32,7 @@ public class ComplexPojoTest {
     public void beforeClass(){
         RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder().
                 setBaseUri("https://api.postman.com").
-                addHeader("X-Api-Key","PMAK-60a3f206121882005850a249-57f7d6d683b101d2c61ffac32f57a1a81e").
+                addHeader("X-Api-Key", "PMAK-60a3f206121882005850a249-57f7d6d683b101d2c61ffac32f57a1a81e").
                 setContentType(ContentType.JSON).
                 log(LogDetail.ALL);
         RestAssured.requestSpecification = requestSpecBuilder.build();

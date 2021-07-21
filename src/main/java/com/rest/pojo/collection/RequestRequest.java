@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class RequestRequest extends RequestBase {
+public class RequestRequest extends RequestBase {
 
 
     private String url;
