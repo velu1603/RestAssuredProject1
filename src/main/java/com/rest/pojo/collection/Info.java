@@ -1,7 +1,7 @@
 package com.rest.pojo.collection;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import sun.font.TrueTypeFont;
+
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Info {
