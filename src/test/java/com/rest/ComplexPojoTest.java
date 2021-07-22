@@ -22,7 +22,11 @@ import org.testng.annotations.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.restassured.RestAssured.form;
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
 
 public class ComplexPojoTest {
 
@@ -32,7 +36,7 @@ public class ComplexPojoTest {
     public void beforeClass(){
         RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder().
                 setBaseUri("https://api.postman.com").
-                addHeader("X-Api-Key","PMAK-60a3f206121882005850a249-b4a528bab74b7ce4b56db14e90d233223e").
+                addHeader("X-Api-Key","PMAK-60a3f206121882005850a249-ea468908e4d05ab416c9319826cdd614a4").
                 setContentType(ContentType.JSON).
                 log(LogDetail.ALL);
         RestAssured.requestSpecification = requestSpecBuilder.build();
@@ -103,6 +107,72 @@ public class ComplexPojoTest {
 
                  })));
 
+        List<String> UrlRequestList = new ArrayList<String>();
+        List<String> UrlResponseList = new ArrayList<String>();
+        for(RequestRootRequest requestRootRequest:requestRootList ){
+            System.out.println("URL from request payload " +requestRootRequest.getRequest().getUrl());
+            UrlRequestList.add(requestRootRequest.getRequest().getUrl());
+            //UrlRequestList.add("http://dummy.com");
+        }
+        List<FolderResponse> folderResponseList = deserializedCollectionRoot.getCollection().getItem();
+        for(FolderResponse folderResponse: folderResponseList){
+            List<RequestRootResponse> requestResponseList = folderResponse.getItem();
+            for(RequestRootResponse requestRootResponse: requestResponseList){
+                URL url = requestRootResponse.getRequest().getUrl();
+                System.out.println("URL from response payload " + url.getRaw());
+                UrlResponseList.add(url.getRaw());
+            }
+        }
+        assertThat(UrlResponseList, containsInAnyOrder(UrlRequestList.toArray()));
+    }
+    @Test
+    public void simple_pojo_create_collection() throws JsonProcessingException, JSONException {
+
+
+        List<FolderRequest> folderList = new ArrayList<FolderRequest>();
+
+
+        Info info = new Info("Sample collection2","This is just a sample collection","https://schema.getpostman.com/json/collection/v2.1.0/collection.json");
+
+        CollectionRequest collection = new CollectionRequest(info, folderList);
+        CollectionRootRequest collectionRoot = new CollectionRootRequest(collection);
+
+        String collectionUid = given().
+                body(collectionRoot).
+                when().
+                post("/collections").
+                then().spec(responseSpecification).
+                extract().
+                response().path("collection.uid");
+
+        CollectionRootResponse deserializedCollectionRoot = given().
+                pathParam("collectionUid",collectionUid).
+                when().
+                get("/collections/{collectionUid}").
+                then().
+                spec(responseSpecification).
+                extract().
+                response().
+                as(CollectionRootResponse.class);
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        String collectionRootStr = objectMapper.writeValueAsString(collectionRoot);
+        String deserializedCollectionRootStr = objectMapper.writeValueAsString(deserializedCollectionRoot);
+
+        System.out.println("collectionRootStr" + collectionRootStr);
+        System.out.println("deserializedCollectionRootStr" + deserializedCollectionRootStr);
+
+        assertThat(objectMapper.readTree(collectionRootStr),
+                equalTo(objectMapper.readTree(deserializedCollectionRootStr)));
+
+ /*       JSONAssert.assertEquals(collectionRootStr, deserializedCollectionRootStr,
+                new CustomComparator(JSONCompareMode.STRICT_ORDER,
+                        new Customization("collection.item[*].item[*].request.url", new ValueMatcher<Object>() {
+                            public boolean equal(Object o1, Object o2) {
+                                return true;
+                            }
+
+                        })));*/
     }
 
 }
